@@ -1,0 +1,1 @@
+"""SEACE opportunities backend application."""
