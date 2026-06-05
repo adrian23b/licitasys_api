@@ -92,6 +92,19 @@ Interactive API docs:
 http://localhost:8000/docs
 ```
 
+## Deploy To Fly.io
+
+Create and attach a Fly Postgres database so Fly injects `DATABASE_URL` as an app secret:
+
+```bash
+fly postgres create
+fly postgres attach --app <api-app> <postgres-app>
+fly secrets list --app <api-app>
+fly deploy --app <api-app>
+```
+
+Deploy from this `backend/` directory. The Docker image excludes local `.env` files, so production uses the `DATABASE_URL` provided by Fly instead of a local PostgreSQL URL.
+
 ## Local Development
 
 Create a virtual environment:
