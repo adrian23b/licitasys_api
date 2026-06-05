@@ -104,6 +104,7 @@ fly deploy --app <api-app>
 ```
 
 Deploy from this `backend/` directory. The Docker image excludes local `.env` files, so production uses the `DATABASE_URL` provided by Fly instead of a local PostgreSQL URL.
+The app also sets `ENVIRONMENT=production` in the container so `.env` is ignored at runtime.
 
 ## Local Development
 

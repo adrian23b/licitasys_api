@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic import AnyUrl, Field, field_validator
@@ -8,7 +9,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=None if os.getenv("ENVIRONMENT", "").lower() in {"prod", "production"} else ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
