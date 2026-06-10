@@ -34,6 +34,13 @@ LicitaSys es un proyecto diseñado para gestionar y automatizar procesos de lici
    python manage.py runserver
    ```
 
+## Documentación
+
+- [Especificaciones](doc/especificaciones.md): propósito, módulos, arquitectura, flujo de datos y dependencias externas.
+- [API](doc/api.md): endpoints de salud, identidad, oportunidades y crawler.
+- [Modelo de datos](doc/modelo-datos.md): tablas SQLAlchemy, campos, índices, restricciones y migraciones.
+- [Configuración y despliegue](doc/configuracion-despliegue.md): variables de entorno, Docker Compose, Fly.io y notas de seguridad.
+
 ## Contribución
 
 Si deseas contribuir al proyecto, por favor sigue los siguientes pasos:
