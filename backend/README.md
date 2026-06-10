@@ -19,6 +19,8 @@ No Selenium, Playwright, BeautifulSoup, or HTML scraping is used.
 - Retryable `httpx.AsyncClient` SEACE client
 - Normalization for SEACE dates, nulls, malformed rows, and noisy text
 - APScheduler periodic crawling
+- Corporate identity registration with wallet signature and zkTanenbaum anchoring
+- Bearer-token authorization for user-facing SEACE queries
 - Alembic migrations
 - Docker Compose with API and PostgreSQL
 - Extension points for AI classification, embeddings, semantic search, and alerts
@@ -64,9 +66,17 @@ Environment variables:
 | `SEACE_BASE_URL` | SEACE host | `https://prod4.seace.gob.pe:8086` |
 | `CRAWLER_INTERVAL` | Scheduler interval in seconds | `3600` |
 | `CRAWLER_KEYWORDS` | Comma-separated scheduled keywords | `software,cloud,firewall,ciberseguridad` |
+| `SCHEDULER_ENABLED` | Enables the periodic crawler scheduler | `true` |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `SEACE_TIMEOUT_SECONDS` | HTTP timeout | `20` |
 | `SEACE_MAX_RETRIES` | HTTP retry attempts | `3` |
+| `ZKTANENBAUM_RPC_URL` | zkTanenbaum RPC URL | `https://rpc-zk.tanenbaum.io` |
+| `ZKTANENBAUM_CHAIN_ID` | zkTanenbaum chain ID | `57057` |
+| `IDENTITY_CONTRACT_ADDRESS` | Deployed `IdentityRegistry` address | unset |
+| `IDENTITY_ANCHOR_PRIVATE_KEY` | Backend wallet private key used to anchor identities | unset |
+| `IDENTITY_TOKEN_SECRET` | HMAC secret for opaque bearer token hashes | `change-me-in-production` |
+| `IDENTITY_TOKEN_TTL_SECONDS` | Bearer token lifetime | `2592000` |
+| `IDENTITY_NONCE_TTL_SECONDS` | Wallet-signature nonce lifetime | `600` |
 
 ## Run With Docker
 
@@ -136,11 +146,52 @@ uvicorn app.main:app --reload
 
 ## API Examples
 
+Register a corporate identity:
+
+```bash
+curl -X POST http://localhost:8000/identity/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_name":"ACME SAC",
+    "ruc":"20123456789",
+    "corporate_email":"compras@acme.pe",
+    "wallet_address":"0x0000000000000000000000000000000000000000"
+  }'
+```
+
+Request a wallet-signature nonce:
+
+```bash
+curl -X POST http://localhost:8000/identity/nonce \
+  -H "Content-Type: application/json" \
+  -d '{"wallet_address":"0x0000000000000000000000000000000000000000"}'
+```
+
+After signing the returned `message` with the same wallet, verify and receive a bearer token:
+
+```bash
+curl -X POST http://localhost:8000/identity/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet_address":"0x0000000000000000000000000000000000000000",
+    "nonce":"<nonce>",
+    "signature":"<wallet-signature>"
+  }'
+```
+
+Use the returned token for protected SEACE endpoints:
+
+```bash
+curl "http://localhost:8000/opportunities?keyword=software&limit=20&offset=0" \
+  -H "Authorization: Bearer <access-token>"
+```
+
 Crawl one keyword:
 
 ```bash
 curl -X POST http://localhost:8000/crawl \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <access-token>" \
   -d '{"keyword":"software"}'
 ```
 
@@ -149,26 +200,43 @@ Crawl multiple keywords:
 ```bash
 curl -X POST http://localhost:8000/crawl/bulk \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <access-token>" \
   -d '{"keywords":["software","cloud","firewall","ciberseguridad"]}'
 ```
 
 List stored opportunities:
 
 ```bash
-curl "http://localhost:8000/opportunities?keyword=software&limit=20&offset=0"
+curl "http://localhost:8000/opportunities?keyword=software&limit=20&offset=0" \
+  -H "Authorization: Bearer <access-token>"
 ```
 
 Filter by entity and date:
 
 ```bash
-curl "http://localhost:8000/opportunities?entity=LIMA&date_from=2026-05-01T00:00:00-05:00&date_to=2026-06-30T23:59:59-05:00"
+curl "http://localhost:8000/opportunities?entity=LIMA&date_from=2026-05-01T00:00:00-05:00&date_to=2026-06-30T23:59:59-05:00" \
+  -H "Authorization: Bearer <access-token>"
 ```
 
 Get one opportunity:
 
 ```bash
-curl http://localhost:8000/opportunities/1
+curl http://localhost:8000/opportunities/1 \
+  -H "Authorization: Bearer <access-token>"
 ```
+
+## Identity Contract
+
+The Solidity contract lives in `../contracts` and targets zkTanenbaum:
+
+```bash
+cd ../contracts
+npm install
+npm test
+IDENTITY_ANCHOR_PRIVATE_KEY=<deployer-private-key> npm run deploy:zktanenbaum
+```
+
+Set the deployed address as `IDENTITY_CONTRACT_ADDRESS` for the backend. The same private key, or another key that owns the contract, must be available as `IDENTITY_ANCHOR_PRIVATE_KEY` so the API can anchor verified corporate profiles.
 
 ## Migrations
 

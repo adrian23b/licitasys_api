@@ -3,9 +3,10 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_app_settings, get_seace_client, get_session
+from app.api.dependencies import get_app_settings, get_current_identity, get_seace_client, get_session
 from app.clients.seace import SeaceClient
 from app.core.config import Settings
+from app.models.identity import CorporateIdentity
 from app.repositories.opportunity import OpportunityRepository
 from app.schemas.opportunity import (
     BulkCrawlRequest,
@@ -29,6 +30,7 @@ async def list_opportunities(
     date_to: datetime | None = None,
     limit: int = Query(default=50, ge=1),
     offset: int = Query(default=0, ge=0),
+    identity: CorporateIdentity = Depends(get_current_identity),
     session: AsyncSession = Depends(get_session),
     settings: Settings = Depends(get_app_settings),
 ) -> OpportunityListResponse:
@@ -54,6 +56,7 @@ async def list_opportunities(
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityRead)
 async def get_opportunity(
     opportunity_id: int,
+    identity: CorporateIdentity = Depends(get_current_identity),
     session: AsyncSession = Depends(get_session),
 ) -> OpportunityRead:
     repository = OpportunityRepository(session)
@@ -69,6 +72,7 @@ async def get_opportunity(
 @router.post("/crawl", response_model=CrawlResult, status_code=status.HTTP_202_ACCEPTED)
 async def crawl(
     request: CrawlRequest,
+    identity: CorporateIdentity = Depends(get_current_identity),
     session: AsyncSession = Depends(get_session),
     seace_client: SeaceClient = Depends(get_seace_client),
 ) -> CrawlResult:
@@ -84,6 +88,7 @@ async def crawl(
 @router.post("/crawl/bulk", response_model=BulkCrawlResult, status_code=status.HTTP_202_ACCEPTED)
 async def crawl_bulk(
     request: BulkCrawlRequest,
+    identity: CorporateIdentity = Depends(get_current_identity),
     session: AsyncSession = Depends(get_session),
     seace_client: SeaceClient = Depends(get_seace_client),
 ) -> BulkCrawlResult:

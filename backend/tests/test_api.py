@@ -1,9 +1,13 @@
+import os
 from datetime import datetime
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
+
+os.environ["SCHEDULER_ENABLED"] = "false"
 
 from fastapi.testclient import TestClient
 
-from app.api.dependencies import get_seace_client, get_session
+from app.api.dependencies import get_current_identity, get_seace_client, get_session
 from app.main import app
 from app.schemas.opportunity import OpportunityCreate
 
@@ -57,6 +61,10 @@ def override_seace_client() -> FakeSeaceClient:
     return FakeSeaceClient()
 
 
+def override_current_identity() -> SimpleNamespace:
+    return SimpleNamespace(id=1, verification_status="verified", wallet_address="0x123")
+
+
 def test_health_endpoint() -> None:
     with TestClient(app) as client:
         response = client.get("/health")
@@ -71,6 +79,7 @@ def test_crawl_endpoint(monkeypatch) -> None:
     monkeypatch.setattr(crawler_module, "OpportunityRepository", lambda session: FakeRepository())
     app.dependency_overrides[get_session] = override_session
     app.dependency_overrides[get_seace_client] = override_seace_client
+    app.dependency_overrides[get_current_identity] = override_current_identity
 
     try:
         with TestClient(app) as client:
@@ -81,3 +90,11 @@ def test_crawl_endpoint(monkeypatch) -> None:
     assert response.status_code == 202
     assert response.json()["inserted"] == 1
     assert response.json()["duplicates"] == 0
+
+
+def test_protected_endpoint_requires_bearer_token() -> None:
+    with TestClient(app) as client:
+        response = client.get("/opportunities")
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Missing bearer token"

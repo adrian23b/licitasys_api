@@ -1,0 +1,57 @@
+### Dependencias ###
+node_modules/
+**/.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.pnpm-debug.log
+
+### Build y logs ###
+dist/
+build/
+.out/
+.next/
+.cache/
+*.log
+logs/
+
+### Variables de entorno ###
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+!.env.example  # Mantén el archivo de ejemplo
+
+### IDE y editores ###
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Blockchain/Metamask ###
+**/keystore/
+**/*.env.local
+**/artifacts/
+**/cache/
+**/typechain/
+
+### Testing y cobertura ###
+coverage/
+.nyc_output/
+
+### Misceláneo ###
+*.tmp
+*.bak
+*.patch
+.vercel/
+.netlify

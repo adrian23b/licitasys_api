@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SEACE - Registro empresarial</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">SEACE • Identidad corporativa</p>
+          <h1>Accede, registra tu empresa y recibe tu anclaje en blockchain</h1>
+          <p>Elige tu método de acceso preferido, crea tu identidad, completa tu empresa y obtén tu código de consulta para los endpoints.</p>
+        </div>
+
+        <div class="stepper" aria-label="Pasos del flujo">
+          <div class="step is-active" data-step="auth"><span>1</span><strong>Inicio de sesión</strong></div>
+          <div class="step" data-step="company"><span>2</span><strong>Registro de empresa</strong></div>
+          <div class="step" data-step="result"><span>3</span><strong>Anclaje y acceso</strong></div>
+        </div>
+
+        <section id="authPanel" class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Inicia sesión</h2>
+              <p>Conecta tu wallet o usa tu correo corporativo.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <label for="apiBase">API base</label>
+            <input id="apiBase" type="text" value="http://localhost:8000" />
+          </div>
+
+          <div class="method-switch" role="tablist" aria-label="Métodos de registro">
+            <button id="walletMethodBtn" class="method-btn active" type="button">Con wallet</button>
+            <button id="emailMethodBtn" class="method-btn" type="button">Con email</button>
+          </div>
+
+          <div id="walletMethodPanel" class="method-panel">
+            <button id="connectWalletBtn" class="secondary" type="button">Conectar wallet</button>
+            <div class="input-group">
+              <label for="walletAddress">Wallet conectada</label>
+              <input id="walletAddress" placeholder="Conecta una wallet para continuar" readonly />
+            </div>
+            <p class="hint">Se usará tu wallet para generar la identidad y el anclaje en blockchain.</p>
+          </div>
+
+          <div id="emailMethodPanel" class="method-panel hidden">
+            <div class="input-group">
+              <label for="email">Correo corporativo</label>
+              <input id="email" type="email" placeholder="compras@acme.pe" />
+            </div>
+            <p class="hint">Solo necesitas tu correo para crear la cuenta y recibir una wallet custodial.</p>
+          </div>
+
+          <div class="actions">
+            <button id="authBtn" type="button">Continuar</button>
+          </div>
+        </section>
+
+        <section id="companyPanel" class="panel hidden">
+          <div class="panel-heading">
+            <div>
+              <h2>Registrar empresa</h2>
+              <p>Completa esta información una vez creada la cuenta.</p>
+            </div>
+          </div>
+          <form id="profileForm" class="form-grid">
+            <div class="input-group">
+              <label for="companyName">Nombre de la empresa</label>
+              <input id="companyName" required placeholder="ACME SAC" />
+            </div>
+            <div class="input-group">
+              <label for="ruc">RUC</label>
+              <input id="ruc" required maxlength="11" placeholder="20123456789" />
+            </div>
+            <div class="input-group full-width">
+              <label for="companyEmail">Correo corporativo</label>
+              <input id="companyEmail" type="email" required placeholder="compras@acme.pe" />
+            </div>
+          </form>
+          <div class="actions">
+            <button id="profileSubmitBtn" type="button">Guardar empresa</button>
+          </div>
+        </section>
+
+        <section id="resultPanel" class="panel hidden">
+          <div class="panel-heading">
+            <div>
+              <h2>Listo para consultar</h2>
+              <p>Tu identidad quedó registrada y anclada para tus consultas.</p>
+            </div>
+          </div>
+          <div id="explorerLinkBox" class="info-card"></div>
+          <div class="token-card">
+            <div class="token-header">
+              <h3>Código de acceso</h3>
+              <button id="copyTokenBtn" class="ghost" type="button">Copiar</button>
+            </div>
+            <textarea id="tokenOutput" rows="5" readonly placeholder="Tu código aparecerá aquí"></textarea>
+          </div>
+        </section>
+
+        <div class="status" id="statusBox" aria-live="polite">Selecciona cómo iniciar sesión para comenzar.</div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
